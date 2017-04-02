@@ -1,0 +1,134 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="REG2CI.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="XMLBodyOS" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;DesiredConfigurationDigest xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/07/10/DesiredConfiguration"&gt;
+	&lt;!--Authored against the following schema version: 5--&gt;
+	&lt;OperatingSystem AuthoringScopeId="ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892" LogicalName="OperatingSystem_e7820aa6-f780-48f8-9e39-34d15446c4d1" Version="2"&gt;
+		&lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+			&lt;DisplayName Text="Test CI" ResourceId="ID-457b14c0-5df6-4a6b-a693-2f807d31db72"/&gt;
+			&lt;Description Text="Reg2CI (c) 2016 by Roger Zander"/&gt;
+		&lt;/Annotation&gt;
+		&lt;Parts&gt;
+			&lt;SuppressionReferences/&gt;
+		&lt;/Parts&gt;
+		&lt;Settings&gt;
+			&lt;RootComplexSetting&gt;
+			&lt;/RootComplexSetting&gt;
+		&lt;/Settings&gt;
+		&lt;Rules&gt;
+		&lt;/Rules&gt;
+		&lt;OperatingSystemDiscoveryRule xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+			&lt;OperatingSystemExpression&gt;
+				&lt;Operator&gt;OneOf&lt;/Operator&gt;
+				&lt;Operands&gt;
+					&lt;RuleExpression RuleId="Windows/All_Windows_Client_Server"/&gt;
+				&lt;/Operands&gt;
+			&lt;/OperatingSystemExpression&gt;
+		&lt;/OperatingSystemDiscoveryRule&gt;
+	&lt;/OperatingSystem&gt;
+&lt;/DesiredConfigurationDigest&gt;</Value>
+    </Setting>
+    <Setting Name="SimpleSettingReg" Type="System.String" Scope="Application">
+      <Value Profile="(Default)"> &lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+  &lt;DisplayName Text="{DISPLAYNAME}" ResourceId="{RESOURCEID}"/&gt;
+  &lt;Description Text="{DESC}"/&gt;
+ &lt;/Annotation&gt;
+ &lt;RegistryDiscoverySource Hive="{HIVE}" Depth="Base" Is64Bit="false" CreateMissingPath="true" xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/07/10/DesiredConfiguration"&gt;
+  &lt;Key&gt;{KEY}&lt;/Key&gt;
+  &lt;ValueName&gt;{VALUENAME}&lt;/ValueName&gt;
+ &lt;/RegistryDiscoverySource&gt;</Value>
+    </Setting>
+    <Setting Name="RuleRegValue" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">&lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+	&lt;DisplayName Text="{DISPLAYNAME}" ResourceId="{RESOURCEID}"/&gt;
+	&lt;Description Text=""/&gt;
+&lt;/Annotation&gt;
+&lt;Expression xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+	&lt;Operator&gt;Equals&lt;/Operator&gt;
+	&lt;Operands&gt;
+		&lt;SettingReference AuthoringScopeId="{AUTHORINGSCOPEID}" LogicalName="{LOGICALNAME}" Version="1" DataType="{DATATYPE}" SettingLogicalName="{SETTINGLOGICALNAME}" SettingSourceType="Registry" Method="Value" Changeable="true"/&gt;
+		&lt;ConstantValue Value="{CONSTANTVALUE}" DataType="{DATATYPE}"/&gt;
+	&lt;/Operands&gt;
+&lt;/Expression&gt;</Value>
+    </Setting>
+    <Setting Name="RuleRegExist" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">&lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+	&lt;DisplayName Text="{DISPLAYNAME}" ResourceId="{RESOURCEID}"/&gt;
+	&lt;Description Text=""/&gt;
+&lt;/Annotation&gt;
+&lt;Expression xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+	&lt;Operator&gt;Equals&lt;/Operator&gt;
+	&lt;Operands&gt;
+		&lt;SettingReference AuthoringScopeId="{AUTHORINGSCOPEID}" LogicalName="{LOGICALNAME}" Version="1" DataType="{DATATYPE}" SettingLogicalName="{SETTINGLOGICALNAME}" SettingSourceType="Registry" Method="Value" Changeable="false"/&gt;
+		&lt;ConstantValue Value="{CONSTANTVALUE}" DataType="{DATATYPE}"/&gt;
+	&lt;/Operands&gt;
+&lt;/Expression&gt;</Value>
+    </Setting>
+    <Setting Name="XMLBodyApp" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;DesiredConfigurationDigest xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/07/10/DesiredConfiguration"&gt;
+  &lt;!--Authored against the following schema version: 5--&gt;
+  &lt;Application AuthoringScopeId="ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892" LogicalName="Application_8ffce5a5-ebed-47ee-88c1-80fdd4504a04" Version="1" Is64Bit="false"&gt;
+    &lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+      &lt;DisplayName Text="TEST" ResourceId="" /&gt;
+      &lt;Description Text="Reg2CI (c) 2016 by Roger Zander" /&gt;
+    &lt;/Annotation&gt;
+    &lt;Parts&gt;
+      &lt;SuppressionReferences /&gt;
+    &lt;/Parts&gt;
+    &lt;Settings&gt;
+      &lt;RootComplexSetting /&gt;
+    &lt;/Settings&gt;
+	&lt;Rules&gt;
+	&lt;/Rules&gt;
+    &lt;PlatformApplicabilityCondition xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+      &lt;OperatingSystemExpression&gt;
+        &lt;Operator&gt;OneOf&lt;/Operator&gt;
+        &lt;Operands&gt;
+          &lt;RuleExpression RuleId="Windows/All_Windows_Client_Server" /&gt;
+        &lt;/Operands&gt;
+      &lt;/OperatingSystemExpression&gt;
+    &lt;/PlatformApplicabilityCondition&gt;
+    &lt;ScriptDiscoveryInfo ScriptType="PowerShell"&gt;&lt;Script&gt;$true&lt;/Script&gt;&lt;/ScriptDiscoveryInfo&gt;
+  &lt;/Application&gt;
+&lt;/DesiredConfigurationDigest&gt;</Value>
+    </Setting>
+    <Setting Name="SimpleSettingPS" Type="System.String" Scope="Application">
+      <Value Profile="(Default)"> &lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+	&lt;DisplayName Text="{DISPLAYNAME}" ResourceId="{RESOURCEID}"/&gt;
+	&lt;Description Text="{DESC}"/&gt;
+ &lt;/Annotation&gt;
+  &lt;ScriptDiscoverySource Is64Bit="{X64}" xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/07/10/DesiredConfiguration"&gt;
+    &lt;DiscoveryScriptBody ScriptType="PowerShell"&gt;if((Get-ItemProperty -Path '{KEY}' -Name {VALUENAME} -ea SilentlyContinue).{VALUENAME} -eq {TARGETVALUE}) { $true } else { $false }&lt;/DiscoveryScriptBody&gt;
+    &lt;RemediationScriptBody ScriptType="PowerShell"&gt;New-Item -Path '{KEY}';
+New-ItemProperty -Path '{KEY}' -Name {VALUENAME} -Value {TARGETVALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue;&lt;/RemediationScriptBody&gt;
+  &lt;/ScriptDiscoverySource&gt;</Value>
+    </Setting>
+    <Setting Name="RulePSBool" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">&lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+	&lt;DisplayName Text="{DISPLAYNAME}" ResourceId="{RESOURCEID}"/&gt;
+	&lt;Description Text="Reg2CI (c) 2016 by Roger Zander"/&gt;
+&lt;/Annotation&gt;
+&lt;Expression xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+	&lt;Operator&gt;Equals&lt;/Operator&gt;
+	&lt;Operands&gt;
+		&lt;SettingReference AuthoringScopeId="{AUTHORINGSCOPEID}" LogicalName="{LOGICALNAME}" Version="1" DataType="Boolean" SettingLogicalName="{SETTINGLOGICALNAME}" SettingSourceType="Script" Method="Value" Changeable="true"/&gt;
+		&lt;ConstantValue Value="True" DataType="Boolean"/&gt;
+	&lt;/Operands&gt;
+&lt;/Expression&gt;</Value>
+    </Setting>
+    <Setting Name="PSScript" Type="System.String" Scope="Application">
+      <Value Profile="(Default)"> &lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
+	&lt;DisplayName Text="{DISPLAYNAME}" ResourceId="{RESOURCEID}"/&gt;
+	&lt;Description Text="{DESC}"/&gt;
+ &lt;/Annotation&gt;
+  &lt;ScriptDiscoverySource Is64Bit="{X64}" xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/07/10/DesiredConfiguration"&gt;
+    &lt;DiscoveryScriptBody ScriptType="PowerShell"&gt;{PSDISC}&lt;/DiscoveryScriptBody&gt;
+    &lt;RemediationScriptBody ScriptType="PowerShell"&gt;{PSREM}&lt;/RemediationScriptBody&gt;
+  &lt;/ScriptDiscoverySource&gt;</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
