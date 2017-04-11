@@ -14,7 +14,7 @@ namespace REG2CI
         {
             bool bX64 = true;
             List<string> lArgs = args.ToList();
-            Console.WriteLine("****** Reg2CI (c) 2016 by Roger Zander ******");
+            Console.WriteLine("****** Reg2CI (c) 2017 by Roger Zander ******");
             if(lArgs.Count == 0 || lArgs.Contains("-?") || lArgs.Contains("/?"))
             {
                 Console.WriteLine("Usage: Reg2CI.exe <Reg File> <Cab File> <Name of the CI> [/X86]");

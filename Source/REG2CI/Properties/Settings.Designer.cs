@@ -31,7 +31,7 @@ namespace REG2CI.Properties {
 	<OperatingSystem AuthoringScopeId=""ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892"" LogicalName=""OperatingSystem_e7820aa6-f780-48f8-9e39-34d15446c4d1"" Version=""2"">
 		<Annotation xmlns=""http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"">
 			<DisplayName Text=""Test CI"" ResourceId=""ID-457b14c0-5df6-4a6b-a693-2f807d31db72""/>
-			<Description Text=""Reg2CI (c) 2016 by Roger Zander""/>
+			<Description Text=""Reg2CI (c) 2017 by Roger Zander""/>
 		</Annotation>
 		<Parts>
 			<SuppressionReferences/>
@@ -120,7 +120,7 @@ namespace REG2CI.Properties {
   <Application AuthoringScopeId=""ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892"" LogicalName=""Application_8ffce5a5-ebed-47ee-88c1-80fdd4504a04"" Version=""1"" Is64Bit=""false"">
     <Annotation xmlns=""http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"">
       <DisplayName Text=""TEST"" ResourceId="""" />
-      <Description Text=""Reg2CI (c) 2016 by Roger Zander"" />
+      <Description Text=""Reg2CI (c) 2017 by Roger Zander"" />
     </Annotation>
     <Parts>
       <SuppressionReferences />
@@ -168,7 +168,7 @@ New-ItemProperty -Path '{KEY}' -Name {VALUENAME} -Value {TARGETVALUE} -PropertyT
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(@"<Annotation xmlns=""http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"">
 	<DisplayName Text=""{DISPLAYNAME}"" ResourceId=""{RESOURCEID}""/>
-	<Description Text=""Reg2CI (c) 2016 by Roger Zander""/>
+	<Description Text=""Reg2CI (c) 2017 by Roger Zander""/>
 </Annotation>
 <Expression xmlns=""http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"">
 	<Operator>Equals</Operator>

@@ -351,7 +351,8 @@ namespace REG2CI
                         if (DataType == ValueType.String)
                         {
                             string sResult = _value.Substring(_value.IndexOf('"') + 1);
-                            sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
+                            if(!string.IsNullOrEmpty(sResult))
+                                sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
                             if (sResult.Contains(@":\\"))
                                 sResult = sResult.Replace("\\\\", "\\");
                             _svalue = "\"" + sResult + "\"";

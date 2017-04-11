@@ -27,7 +27,7 @@ namespace REG2CI
                     string sValue = sLine.Split(';')[1].Trim('\0').Trim();
                     string sType = "REG_NONE";
 
-                    switch (BitConverter.ToInt32(Encoding.Unicode.GetBytes(sLine.Split(';')[2].Trim()), 0))
+                    switch (BitConverter.ToInt16(Encoding.Unicode.GetBytes(sLine.Split(';')[2].Trim()), 0))
                     {
                         case 0:
                             sType = "REG_NONE";
@@ -57,7 +57,15 @@ namespace REG2CI
 
                     string sData = "";
                     if (sType == "REG_DWORD")
-                        sData = BitConverter.ToInt32(Encoding.Unicode.GetBytes(sLine.Split(';')[4].Trim()), 0).ToString();
+                    {
+                        if (Encoding.Unicode.GetBytes(sLine.Split(';')[4].Trim()).Length <= 2)
+                        {
+                            sData = BitConverter.ToInt16(Encoding.Unicode.GetBytes(sLine.Split(';')[4].Trim()), 0).ToString();
+                        } else
+                        {
+                            sData = BitConverter.ToInt32(Encoding.Unicode.GetBytes(sLine.Split(';')[4].Trim()), 0).ToString();
+                        }
+                    }
                     if (sType == "REG_QWORD")
                         sData = BitConverter.ToInt64(Encoding.Unicode.GetBytes(sLine.Split(';')[4].Trim()), 0).ToString();
                     if (sType == "REG_SZ")
@@ -69,7 +77,10 @@ namespace REG2CI
                     lResult.Add(new POLPolicy() { Key = sKey, Value = sValue, Type = sType, Size = iSize.ToString(), Data = sData });
 
                 }
-                catch { }
+                catch(Exception ex)
+                {
+                    ex.Message.ToString();
+                }
             }
 
             Policies = lResult;
