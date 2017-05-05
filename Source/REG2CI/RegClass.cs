@@ -252,7 +252,7 @@ namespace REG2CI
                     if (Action == KeyAction.Add)
                     {
                         //Create key if it does not exist
-                        return string.Format("if((Test-Path \"{0}\") -ne $true) {  New-Item \"{0}\" -force -ea SilentlyContinue }", PSHive + ":\\" + Path);
+                        return string.Format("if((Test-Path \"{0}\") -ne $true) {{  New-Item \"{0}\" -force -ea SilentlyContinue }}", PSHive + ":\\" + Path);
                         // return string.Format("New-Item \"{0}\" -ea SilentlyContinue", PSHive + ":\\" + Path);
                     }
                     else
