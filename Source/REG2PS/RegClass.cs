@@ -16,6 +16,7 @@ namespace REG2CI
         public static bool bPSScript = true;
         public static XmlDocument xDoc = new XmlDocument();
         internal static string LogicalName = "";
+        public string Description = "Reg2CI (c) 2017 by Roger Zander";
 
         public RegFile(string fileName, string CIName)
         {
@@ -36,7 +37,7 @@ namespace REG2CI
             //generate XML Body
             //InitXML(CIName);
             string SettingName = CIName;
-            String Description = "Reg2CI (c) 2017 by Roger Zander";
+
             string sAllLines = fileName;
 
             if (File.Exists(fileName))
@@ -74,16 +75,16 @@ namespace REG2CI
                         if (iLastDescription == iPos - 1 & iLastDescription > -1)
                             oKey.Description = lines[iLastDescription].TrimStart().Substring(1);
 
-                        RegKey rKey = new RegKey(sLine, iPos);
-                        if (rKey.PSHive == "HKLM:")
+                        //RegKey rKey = new RegKey(sLine, iPos);
+                        if (oKey.PSHive == "HKLM:")
                             bHKLM = true;
-                        if (rKey.PSHive == "HKCU:")
+                        if (oKey.PSHive == "HKCU:")
                             bHKCU = true;
-                        if (rKey.PSHive == @"Registry::\HKEY_USERS")
+                        if (oKey.PSHive == @"Registry::\HKEY_USERS")
                             bHKLM = true;
 
 
-                        RegKeys.Add(rKey);
+                        RegKeys.Add(oKey);
                     }
                     //Detect Values
                     if (Line.StartsWith("@") || Line.StartsWith("\""))
@@ -450,10 +451,16 @@ namespace REG2CI
 
         public string GetPSCheckAll()
         {
-            string sResult = "#Reg2CI (c) 2017 by Roger Zander" + Environment.NewLine;
+            string sResult = "# " + Description + Environment.NewLine;
 
             foreach (RegValue oVal in RegValues)
             {
+                if (!string.IsNullOrEmpty(oVal.Description))
+                {
+                    sResult += Environment.NewLine;
+                    sResult += "# " + oVal.Description + Environment.NewLine;
+                }
+
                 sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
             }
             sResult += "return $true";
@@ -462,7 +469,7 @@ namespace REG2CI
 
         public string GetPSCheckAll(string PSHive)
         {
-            string sResult = "#Reg2CI (c) 2017 by Roger Zander" + Environment.NewLine;
+            string sResult = "# " + Description + Environment.NewLine;
 
             foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive == PSHive))
             {
@@ -474,16 +481,26 @@ namespace REG2CI
 
         public string GetPSRemediateAll()
         {
-            string sResult = "#Reg2CI (c) 2017 by Roger Zander" + Environment.NewLine;
+            string sResult = "# " + Description + Environment.NewLine;
 
             //Get Keys only once
-            foreach (RegKey oVal in RegKeys.GroupBy(t => t.FullKey).Select(y => y.First()))
+            foreach (RegKey oKey in RegKeys.GroupBy(t => t.FullKey).Select(y => y.First()))
             {
-                sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
+                if (!string.IsNullOrEmpty(oKey.Description))
+                {
+                    sResult += Environment.NewLine;
+                    sResult += "# " + oKey.Description + Environment.NewLine;
+                }
+                sResult = sResult + oKey.PSRemediate + ";" + Environment.NewLine;
             }
 
             foreach (RegValue oVal in RegValues)
             {
+                if (!string.IsNullOrEmpty(oVal.Description))
+                {
+                    sResult += Environment.NewLine;
+                    sResult += "# " + oVal.Description + Environment.NewLine;
+                }
                 sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
             }
 
@@ -492,18 +509,30 @@ namespace REG2CI
 
         public string GetPSRemediateAll(string PSHive)
         {
-            string sResult = "#Reg2CI (c) 2017 by Roger Zander" + Environment.NewLine;
+            string sResult = "# " + Description + Environment.NewLine;
 
             if (PSHive == "HKLM:")
             {
                 //Get Keys only once
                 foreach (RegKey oVal in RegKeys.Where(t => t.PSHive != "HKCU:").GroupBy(t => t.FullKey).Select(y => y.First()))
                 {
+                    if (!string.IsNullOrEmpty(oVal.Description))
+                    {
+                        sResult += Environment.NewLine;
+                        sResult += "# " + oVal.Description + Environment.NewLine;
+                    }
+
                     sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
                 }
 
                 foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive != "HKCU:"))
                 {
+                    if (!string.IsNullOrEmpty(oVal.Description))
+                    {
+                        sResult += Environment.NewLine;
+                        sResult += "# " + oVal.Description + Environment.NewLine;
+                    }
+
                     sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
                 }
             }
@@ -512,11 +541,23 @@ namespace REG2CI
                 //Get Keys only once
                 foreach (RegKey oVal in RegKeys.Where(t => t.PSHive == PSHive).GroupBy(t => t.FullKey).Select(y => y.First()))
                 {
+                    if (!string.IsNullOrEmpty(oVal.Description))
+                    {
+                        sResult += Environment.NewLine;
+                        sResult += "# " + oVal.Description + Environment.NewLine;
+                    }
+
                     sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
                 }
 
                 foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive == PSHive))
                 {
+                    if (!string.IsNullOrEmpty(oVal.Description))
+                    {
+                        sResult += Environment.NewLine;
+                        sResult += "# " + oVal.Description + Environment.NewLine;
+                    }
+
                     sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
                 }
             }
