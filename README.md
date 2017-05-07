@@ -4,6 +4,10 @@ Reg2CI is a Command-Line Tool to convert .POL (Policy) or .REG Files (Registry) 
 ## Downloads
 https://github.com/rzander/Reg2CI/releases
 
+## REG2PS WebSite
+Convert your .reg Files online to PowerShell scripts:
+https://reg2ps.azurewebsites.net/
+
 ## Usage
 Command-Line Parameters:
 ```
