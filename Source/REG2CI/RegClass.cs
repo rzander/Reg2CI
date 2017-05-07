@@ -20,7 +20,10 @@ namespace REG2CI
 
         public RegFile(string fileName, string CIName)
         {
-            string sAllLines = File.ReadAllText(fileName, Encoding.ASCII);
+            string sAllLines = fileName;
+
+            if (File.Exists(fileName))
+                sAllLines = File.ReadAllText(fileName, Encoding.ASCII);
             //Detect if reg contains x64 related keys
             if (sAllLines.ToLower().Contains("wow6432node"))
                 x64 = true;
@@ -35,8 +38,13 @@ namespace REG2CI
             InitXML(CIName);
             string SettingName = CIName;
             String Description = "Reg2CI (c) 2017 by Roger Zander";
+            string sAllLines = fileName;
 
-            string sAllLines = File.ReadAllText(fileName, Encoding.ASCII);
+            if (File.Exists(fileName))
+                sAllLines = File.ReadAllText(fileName, Encoding.ASCII);
+
+            sAllLines = sAllLines.Replace("\\" + Environment.NewLine, "");
+
             lines = sAllLines.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
             RegKeys = new List<RegKey>();
             RegValues = new List<RegValue>();
@@ -64,14 +72,17 @@ namespace REG2CI
                         RegKey oKey = new RegKey(sLine, iPos);
 
                         //Get Description
-                        if (iLastDescription == iPos - 1)
+                        if (iLastDescription == iPos - 1 & iLastDescription > -1)
                             oKey.Description = lines[iLastDescription].TrimStart().Substring(1);
 
                         RegKey rKey = new RegKey(sLine, iPos);
-                        if (rKey.PSHive == "HKLM")
+                        if (rKey.PSHive == "HKLM:")
                             bHKLM = true;
-                        if (rKey.PSHive == "HKCU")
+                        if (rKey.PSHive == "HKCU:")
                             bHKCU = true;
+                        if (rKey.PSHive == @"Registry::\HKEY_USERS")
+                            bHKLM = true;
+
 
                         RegKeys.Add(rKey);
                     }
@@ -80,7 +91,7 @@ namespace REG2CI
                     {
                         RegValue oValue = new RegValue(Line, iLastKey);
                         //Get Description
-                        if (iLastDescription == iPos - 1)
+                        if (iLastDescription == iPos - 1 & iLastDescription > -1)
                             oValue.Description = lines[iLastDescription].TrimStart().Substring(1);
 
                         RegValues.Add(oValue);
@@ -96,12 +107,11 @@ namespace REG2CI
             if(bPSScript)
             {
                 if(bHKLM)
-                    CreatePSXMLAll(SettingName, Description, "HKLM");
+                    CreatePSXMLAll(SettingName, Description, "HKLM:");
                 if (bHKCU)
-                    CreatePSXMLAll(SettingName, Description, "HKCU");
+                    CreatePSXMLAll(SettingName, Description, "HKCU:");
             }
 }
-
         public RegFile(string fileName, bool X64, string CIName, bool MachinePolicy)
         {
             x64 = X64;
@@ -136,9 +146,9 @@ namespace REG2CI
             if (bPSScript)
             {
                 if (bHKLM)
-                    CreatePSXMLAll(SettingName, Description, "HKLM");
+                    CreatePSXMLAll(SettingName, Description, "HKLM:");
                 if (bHKCU)
-                    CreatePSXMLAll(SettingName, Description, "HKCU");
+                    CreatePSXMLAll(SettingName, Description, "HKCU:");
             }
         }
         public string fileName
@@ -191,9 +201,11 @@ namespace REG2CI
                     switch (Hive.ToUpper())
                     {
                         case "HKEY_LOCAL_MACHINE":
-                            return "HKLM";
+                            return "HKLM:";
                         case "HKEY_CURRENT_USER":
-                            return "HKCU";
+                            return "HKCU:";
+                        case "HKEY_USERS":
+                            return @"Registry::\HKEY_USERS";
                         default:
                             return "";
                     }
@@ -236,11 +248,11 @@ namespace REG2CI
                 {
                     if (Action == KeyAction.Add)
                     {
-                        return string.Format("Test-Path \"{0}\"", PSHive + ":\\" + Path);
+                        return string.Format("Test-Path \"{0}\"", PSHive + "\\" + Path);
                     }
                     else
                     {
-                        return string.Format("!(Test-Path\"{0}\")", PSHive + ":\\" + Path);
+                        return string.Format("!(Test-Path\"{0}\")", PSHive + "\\" + Path);
                     }
                 }
             }
@@ -252,12 +264,12 @@ namespace REG2CI
                     if (Action == KeyAction.Add)
                     {
                         //Create key if it does not exist
-                        return string.Format("if((Test-Path \"{0}\") -ne $true) {{  New-Item \"{0}\" -force -ea SilentlyContinue }}", PSHive + ":\\" + Path);
+                        return string.Format("if((Test-Path \"{0}\") -ne $true) {{  New-Item \"{0}\" -force -ea SilentlyContinue }}", PSHive + "\\" + Path);
                         // return string.Format("New-Item \"{0}\" -ea SilentlyContinue", PSHive + ":\\" + Path);
                     }
                     else
                     {
-                        return string.Format("Remove-Item \"{0}\" -force", PSHive + ":\\" + Path);
+                        return string.Format("Remove-Item \"{0}\" -force", PSHive + "\\" + Path);
                     }
                 }
             }
@@ -275,7 +287,7 @@ namespace REG2CI
             {
                 KeyID = keyID;
                 _name = regline.Substring(0, regline.IndexOf('='));
-                _value = regline.Substring(regline.IndexOf('=') + 1).Replace("&","&amp;").Replace("<","&lt;").Replace(">","&gt;");
+                _value = regline.Substring(regline.IndexOf('=') + 1).Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 
                 if (_value.StartsWith("-"))
                     Action = KeyAction.Remove;
@@ -286,7 +298,7 @@ namespace REG2CI
             public RegValue(string Name, string Value, string Type, int keyID)
             {
                 KeyID = keyID;
-                _name = Name.Replace("**Del.", "").Replace("**del.", ""); 
+                _name = Name.Replace("**Del.", "").Replace("**del.", "");
                 _value = Value;
 
                 if (Name.ToLower().StartsWith("**del."))
@@ -328,6 +340,8 @@ namespace REG2CI
                         return ValueType.DWord;
                     if (_value.ToLower().StartsWith("qword:"))
                         return ValueType.QWord;
+                    if (_value.ToLower().StartsWith("hex(7):"))
+                        return ValueType.MultiString;
 
                     return ValueType.String;
                 }
@@ -353,7 +367,7 @@ namespace REG2CI
                         if (DataType == ValueType.String)
                         {
                             string sResult = _value.Substring(_value.IndexOf('"') + 1);
-                            if(!string.IsNullOrEmpty(sResult))
+                            if (!string.IsNullOrEmpty(sResult))
                                 sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
                             if (sResult.Contains(@":\\"))
                                 sResult = sResult.Replace("\\\\", "\\");
@@ -389,6 +403,21 @@ namespace REG2CI
 
                             return _svalue;
                         }
+                        if (DataType == ValueType.MultiString)
+                        {
+                            //return Encoding.UTF8.GetString(Encoding.Unicode.GetBytes(_value.Replace("hex(7):", "").Replace(" ", "")));
+                            string[] aHex = _value.Replace("hex(7):", "").Replace(" ", "").Split(',');
+                            List<byte> bRes = new List<byte>();
+
+                            foreach (string sVal in aHex)
+                            {
+                                bRes.Add(Convert.ToByte(sVal, 16));
+                            }
+
+                            string sResult = Encoding.Unicode.GetString(bRes.ToArray());
+                            _svalue = "\"" + string.Join(",", sResult.TrimEnd('\0').Split('\0')) + "\"";
+                            return sResult.TrimEnd('\0').Split('\0');
+                        }
                     }
                     return "";
                 }
@@ -404,12 +433,20 @@ namespace REG2CI
                     if (Action == KeyAction.Add)
                     {
                         Value.ToString(); //We need to calculate the Value to have an _sValue
-                        return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + ":\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                        if (Value.GetType() == typeof(string[]))
+                        {
+                            return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -join ',' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                        }
+                        return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                     }
                     else
                     {
                         Value.ToString(); //We need to calculate the Value to have an _sValue
-                        return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq $null) { $true } else { $false }".Replace("{PATH}", PSHive + ":\\" + Path).Replace("{NAME}", Name);
+                        if (Value.GetType() == typeof(string[]))
+                        {
+                            return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq $null) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name);
+                        }
+                        return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq $null) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name);
                     }
                 }
             }
@@ -424,12 +461,27 @@ namespace REG2CI
                     if (Action == KeyAction.Add)
                     {
                         Value.ToString(); //We need to calculate the Value to have an _sValue
-                        return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + ":\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
+                        if (Value.GetType() == typeof(string[]))
+                        {
+                            string sPSVal = "@(";
+                            foreach (string sVal in Value as string[])
+                            {
+                                sPSVal += "\"" + sVal + "\",";
+                            }
+                            sPSVal = sPSVal.TrimEnd(',');
+                            sPSVal += ")";
+                            return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
+                        }
+                        return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
                     }
                     else
                     {
                         Value.ToString(); //We need to calculate the Value to have an _sValue
-                        return "Remove-ItemProperty -Path '{PATH}' -Name '{NAME}' -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + ":\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
+                        if (Value.GetType() == typeof(string[]))
+                        {
+                            return "Remove-ItemProperty -Path '{PATH}' -Name '{NAME}' -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
+                        }
+                        return "Remove-ItemProperty -Path '{PATH}' -Name '{NAME}' -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
                     }
                 }
             }
@@ -438,24 +490,35 @@ namespace REG2CI
         public string GetPSCheckAll()
         {
             string sResult = "#Reg2CI (c) 2017 by Roger Zander" + Environment.NewLine;
-            sResult = sResult + "$bResult = $true;" + Environment.NewLine;
+
             foreach (RegValue oVal in RegValues)
             {
-                sResult = sResult + oVal.PSCheck.Replace("$true",""). Replace("$false", "$bResult = $false") + ";" + Environment.NewLine;
+                sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
             }
-            sResult = sResult + "$bResult";
+            sResult += "return $true";
             return sResult;
         }
 
         public string GetPSCheckAll(string PSHive)
         {
             string sResult = "#Reg2CI (c) 2017 by Roger Zander" + Environment.NewLine;
-            sResult = sResult + "$bResult = $true;" + Environment.NewLine;
-            foreach (RegValue oVal in RegValues.Where(t=>t.Key.PSHive == PSHive))
+
+            if (PSHive == "HKLM:")
             {
-                sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "$bResult = $false") + ";" + Environment.NewLine;
+                foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive != "HKCU:"))
+                {
+                    sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                }
+                sResult += "return $true";
             }
-            sResult = sResult + "$bResult";
+            else
+            {
+                foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive == PSHive))
+                {
+                    sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                }
+                sResult += "return $true";
+            }
             return sResult;
         }
 
@@ -481,15 +544,31 @@ namespace REG2CI
         {
             string sResult = "#Reg2CI (c) 2017 by Roger Zander" + Environment.NewLine;
 
-            //Get Keys only once
-            foreach (RegKey oVal in RegKeys.Where(t=>t.PSHive == PSHive).GroupBy(t=>t.FullKey).Select(y => y.First()))
+            if (PSHive == "HKLM:")
             {
-                sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
-            }
+                //Get Keys only once
+                foreach (RegKey oVal in RegKeys.Where(t => t.PSHive != "HKCU:").GroupBy(t => t.FullKey).Select(y => y.First()))
+                {
+                    sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
+                }
 
-            foreach (RegValue oVal in RegValues.Where(t=>t.Key.PSHive == PSHive))
+                foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive != "HKCU:"))
+                {
+                    sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
+                }
+            }
+            else
             {
-                sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
+                //Get Keys only once
+                foreach (RegKey oVal in RegKeys.Where(t => t.PSHive == PSHive).GroupBy(t => t.FullKey).Select(y => y.First()))
+                {
+                    sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
+                }
+
+                foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive == PSHive))
+                {
+                    sResult = sResult + oVal.PSRemediate + ";" + Environment.NewLine;
+                }
             }
 
             return sResult;
@@ -609,7 +688,7 @@ namespace REG2CI
 
             string sXML = xSimpleSetting.InnerXml.Replace("{PSDISC}", GetPSCheckAll(PSHive)).Replace("{PSREM}", GetPSRemediateAll(PSHive)).Replace("{X64}", x64.ToString().ToLower());
             xSimpleSetting.InnerXml = sXML;
-            if(PSHive == "HKCU")
+            if(PSHive == "HKCU:")
             {
                 xSimpleSetting.InnerXml = xSimpleSetting.InnerXml.Replace("ScriptDiscoverySource Is64Bit=\"" + x64.ToString().ToLower() + "\"", "ScriptDiscoverySource Is64Bit=\"" + x64.ToString().ToLower() + "\" IsPerUser=\"true\"");
             }
@@ -650,6 +729,6 @@ namespace REG2CI
 
     public enum ValueType
     {
-        String, DWord, QWord
+        String, DWord, QWord, MultiString
     }
 }

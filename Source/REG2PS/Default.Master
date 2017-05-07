@@ -1,0 +1,61 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Default.master.cs" Inherits="REG2PS.Default" %>
+
+<!DOCTYPE html>
+<style type="text/css">
+    html {
+        position: relative;
+        min-height: 100%;
+    }
+
+    .rfooter {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 40px;
+        text-align: right;
+    }
+
+    .lfooter {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 40px;
+        text-align: center;
+    }
+
+    .messagealert {
+        font-size: 15px;
+    }
+</style>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Registry to PowerShell converter</title>
+    <link rel="shortcut icon" type="image/ico" href="/Images/powershell.ico">
+    <meta name="description" content="Convert PowerShell scripts into Windows executables." />
+    <meta name="keywords" content="Powershell, PoSh, registry, convert, reg, ps1, script" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" src="Scripts/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="Scripts/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="Content/bootstrap.css" />
+
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body style="margin-bottom: 40px;">
+    <form id="form1" runat="server">
+        <asp:ScriptManager ID="ScriptManager1" runat="server" LoadScriptsBeforeUI="True" AjaxFrameworkMode="Disabled">
+        </asp:ScriptManager>
+        <div class="container">
+            <h1>Registry to PowerShell converter</h1>
+            <p class="text-muted"><sup>Version 1.0.0.0 (07.May.2017)</sup></p>
+        </div>
+        <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+        </asp:ContentPlaceHolder>
+    </form>
+    <footer class="rfooter">
+        <div class="container">
+            <p class="text-muted"><a href="https://github.com/rzander/REG2CI/" title="REG2PS on GitHub">REG2PS on GitHub...</a> Copyright © 2017 by Roger Zander</p>
+        </div>
+    </footer>
+</body>
+</html>
