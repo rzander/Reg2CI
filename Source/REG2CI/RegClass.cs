@@ -342,6 +342,10 @@ namespace REG2CI
                         return ValueType.QWord;
                     if (_value.ToLower().StartsWith("hex(7):"))
                         return ValueType.MultiString;
+                    if (_value.ToLower().StartsWith("hex:"))
+                        return ValueType.Binary;
+                    if (_value.ToLower().StartsWith("hex(2):"))
+                        return ValueType.ExpandString;
 
                     return ValueType.String;
                 }
@@ -418,6 +422,33 @@ namespace REG2CI
                             _svalue = "\"" + string.Join(",", sResult.TrimEnd('\0').Split('\0')) + "\"";
                             return sResult.TrimEnd('\0').Split('\0');
                         }
+                        if (DataType == ValueType.Binary)
+                        {
+                            string[] aHex = _value.Replace("hex:", "").Replace(" ", "").Split(',');
+                            _svalue = "([byte[]](";
+                            foreach (string sVal in aHex)
+                            {
+                                _svalue += "0x" + sVal + ",";
+                            }
+                            _svalue = _svalue.TrimEnd(',');
+                            _svalue += "))";
+                            return aHex;
+                        }
+                        if (DataType == ValueType.ExpandString)
+                        {
+                            //return Encoding.UTF8.GetString(Encoding.Unicode.GetBytes(_value.Replace("hex(7):", "").Replace(" ", "")));
+                            string[] aHex = _value.Replace("hex(2):", "").Replace(" ", "").Split(',');
+                            List<byte> bRes = new List<byte>();
+
+                            foreach (string sVal in aHex)
+                            {
+                                bRes.Add(Convert.ToByte(sVal, 16));
+                            }
+
+                            string sResult = Encoding.Unicode.GetString(bRes.ToArray());
+                            _svalue = "\"" + string.Join(",", sResult.TrimEnd('\0').Split('\0')) + "\"";
+                            return sResult.TrimEnd('\0');
+                        }
                     }
                     return "";
                 }
@@ -433,10 +464,17 @@ namespace REG2CI
                     if (Action == KeyAction.Add)
                     {
                         Value.ToString(); //We need to calculate the Value to have an _sValue
-                        if (Value.GetType() == typeof(string[]))
+
+                        if (DataType == ValueType.Binary)
+                        {
+                            return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -join ',' -eq ({VALUE} -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                        }
+
+                        if (DataType == ValueType.MultiString)
                         {
                             return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -join ',' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
+
                         return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                     }
                     else
@@ -461,7 +499,17 @@ namespace REG2CI
                     if (Action == KeyAction.Add)
                     {
                         Value.ToString(); //We need to calculate the Value to have an _sValue
-                        if (Value.GetType() == typeof(string[]))
+                        if (DataType == ValueType.Binary)
+                        {
+                            return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
+                        }
+                        if (DataType == ValueType.ExpandString)
+                        {
+                            string sPSVal = "\"" + Value + "\"";
+
+                            return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
+                        }
+                        if (DataType == ValueType.MultiString)
                         {
                             string sPSVal = "@(";
                             foreach (string sVal in Value as string[])
@@ -758,6 +806,6 @@ namespace REG2CI
 
     public enum ValueType
     {
-        String, DWord, QWord, MultiString
+        String, DWord, QWord, MultiString, Binary, ExpandString
     }
 }
