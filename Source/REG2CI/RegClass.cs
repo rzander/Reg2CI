@@ -338,6 +338,8 @@ namespace REG2CI
                         return ValueType.String;
                     if (_value.ToLower().StartsWith("dword:"))
                         return ValueType.DWord;
+                    if (_value.ToLower().StartsWith("hex(b):"))
+                        return ValueType.QWord;
                     if (_value.ToLower().StartsWith("qword:"))
                         return ValueType.QWord;
                     if (_value.ToLower().StartsWith("hex(7):"))
@@ -557,11 +559,34 @@ namespace REG2CI
         {
             string sResult = "# " + Description + Environment.NewLine;
 
-            foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive == PSHive))
+            if (PSHive == "HKLM:")
             {
-                sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive != "HKCU:"))
+                {
+                    if (!string.IsNullOrEmpty(oVal.Description))
+                    {
+                        sResult += Environment.NewLine;
+                        sResult += "# " + oVal.Description + Environment.NewLine;
+                    }
+
+                    sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                }
+                sResult += "return $true";
             }
-            sResult += "return $true";
+            else
+            {
+                foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive == "HKCU:"))
+                {
+                    if (!string.IsNullOrEmpty(oVal.Description))
+                    {
+                        sResult += Environment.NewLine;
+                        sResult += "# " + oVal.Description + Environment.NewLine;
+                    }
+
+                    sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                }
+                sResult += "return $true";
+            }
             return sResult;
         }
 
