@@ -300,6 +300,8 @@ namespace REG2CI
                         return ValueType.String;
                     if (_value.ToLower().StartsWith("dword:"))
                         return ValueType.DWord;
+                    if (_value.ToLower().StartsWith("hex(b):"))
+                        return ValueType.QWord;
                     if (_value.ToLower().StartsWith("qword:"))
                         return ValueType.QWord;
                     if (_value.ToLower().StartsWith("hex(7):"))
@@ -348,7 +350,7 @@ namespace REG2CI
                                 Int32 iResult = Convert.ToInt32(_svalue, 16); //Int32.Parse(_svalue);
                                 _i32Value = iResult;
                                 _i64Value = iResult;
-                                _svalue = "0x" + iResult.ToString();
+                                _svalue = iResult.ToString();
                                 return iResult;
                             }
                             catch { }
@@ -357,16 +359,34 @@ namespace REG2CI
                         }
                         if (DataType == ValueType.QWord)
                         {
-                            _svalue = "0x" + _value.Substring(_value.IndexOf(':') + 1);
-                            try
+                            if (_value.StartsWith("hex(b):"))
                             {
-                                Int64 iResult = Convert.ToInt64(_svalue, 16);  //Int64.Parse(_svalue);
+                                string[] aHex = _value.Replace("hex(b):", "").Replace(" ", "").Split(',');
+                                List<byte> bRes = new List<byte>();
+                                _svalue = "0x";
+                                foreach (string sVal in aHex.Reverse())
+                                {
+                                    _svalue += sVal;
+                                }
+
+                                Int64 iResult = Convert.ToInt64(_svalue, 16);
                                 _i64Value = iResult;
-                                _svalue = "0x" + iResult.ToString();
+                                _svalue = iResult.ToString();
+
                                 return iResult;
                             }
-                            catch { }
-
+                            else
+                            {
+                                _svalue = "0x" + _value.Substring(_value.IndexOf(':') + 1);
+                                try
+                                {
+                                    Int64 iResult = Convert.ToInt64(_svalue, 16);  //Int64.Parse(_svalue);
+                                    _i64Value = iResult;
+                                    _svalue = "0x" + iResult.ToString();
+                                    return iResult;
+                                }
+                                catch { }
+                            }
                             return _svalue;
                         }
                         if (DataType == ValueType.MultiString)
