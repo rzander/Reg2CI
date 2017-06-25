@@ -457,7 +457,8 @@ namespace REG2CI
                             return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -join ',' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
-                        return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                        string sResult = _svalue.Replace(@"\""", @"`""");
+                        return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
                     }
                     else
                     {
@@ -502,7 +503,9 @@ namespace REG2CI
                             sPSVal += ")";
                             return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
                         }
-                        return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
+
+                        string sResult = _svalue.Replace(@"\""", @"`""");
+                        return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult).Replace("{TARGETTYPE}", DataType.ToString());
                     }
                     else
                     {
