@@ -168,6 +168,8 @@ namespace REG2CI
                             return "HKCU:";
                         case "HKEY_USERS":
                             return @"Registry::\HKEY_USERS";
+                        case "HKEY_CLASSES_ROOT":
+                            return "HKLM:\\SOFTWARE\\Classes";
                         default:
                             return "";
                     }
