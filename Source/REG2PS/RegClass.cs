@@ -16,7 +16,7 @@ namespace REG2CI
         public static bool bPSScript = true;
         public static XmlDocument xDoc = new XmlDocument();
         internal static string LogicalName = "";
-        public string Description = "Reg2CI (c) 2017 by Roger Zander";
+        public string Description = "Reg2CI (c) 2018 by Roger Zander";
 
         public RegFile(string fileName, string CIName)
         {
@@ -451,16 +451,17 @@ namespace REG2CI
 
                         if (DataType == ValueType.Binary)
                         {
-                            return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -join ',' -eq ({VALUE} -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                            return "if((Get-ItemPropertyValue -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ({VALUE} -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
                         if (DataType == ValueType.MultiString)
                         {
-                            return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -join ',' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                            return "if((Get-ItemPropertyValue -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
                         string sResult = _svalue.Replace(@"\""", @"`""");
-                        return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
+                        //return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
+                        return "if((Get-ItemPropertyValue -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
                     }
                     else
                     {
