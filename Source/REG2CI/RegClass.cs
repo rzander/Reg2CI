@@ -345,10 +345,13 @@ namespace REG2CI
                         return ValueType.QWord;
                     if (_value.ToLower().StartsWith("hex(7):"))
                         return ValueType.MultiString;
-                    if (_value.ToLower().StartsWith("hex:"))
-                        return ValueType.Binary;
                     if (_value.ToLower().StartsWith("hex(2):"))
                         return ValueType.ExpandString;
+                    if (_value.ToLower().StartsWith("hex(0):"))
+                        return ValueType.Binary;
+                    if (_value.ToLower().StartsWith("hex:"))
+                        return ValueType.Binary;
+
 
                     return ValueType.String;
                 }
@@ -470,6 +473,9 @@ namespace REG2CI
 
                         if (DataType == ValueType.Binary)
                         {
+                            if (string.IsNullOrEmpty(_svalue))
+                                return "try{ if((Get-ItemPropertyValue -Path '{PATH}' -Name '{NAME}').length -eq 0) { $true } else { $false }} catch { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue); //PS Issue in ErrorAction for Get-ItemPropertyValue
+
                             return "if((Get-ItemPropertyValue -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ({VALUE} -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
@@ -506,6 +512,9 @@ namespace REG2CI
                         Value.ToString(); //We need to calculate the Value to have an _sValue
                         if (DataType == ValueType.Binary)
                         {
+                            if (string.IsNullOrEmpty(_svalue))
+                                return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value (New-Object Byte[] 0) -PropertyType None -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name);
+
                             return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
                         }
                         if (DataType == ValueType.ExpandString)
@@ -525,6 +534,7 @@ namespace REG2CI
                             sPSVal += ")";
                             return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
                         }
+
                         string sResult = _svalue.Replace(@"\""", @"`""");
                         return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult).Replace("{TARGETTYPE}", DataType.ToString());
                     }

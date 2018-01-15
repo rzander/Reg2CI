@@ -308,10 +308,13 @@ namespace REG2CI
                         return ValueType.QWord;
                     if (_value.ToLower().StartsWith("hex(7):"))
                         return ValueType.MultiString;
-                    if (_value.ToLower().StartsWith("hex:"))
-                        return ValueType.Binary;
                     if (_value.ToLower().StartsWith("hex(2):"))
                         return ValueType.ExpandString;
+                    if (_value.ToLower().StartsWith("hex(0):"))
+                        return ValueType.Binary;
+                    if (_value.ToLower().StartsWith("hex:"))
+                        return ValueType.Binary;
+
 
                     return ValueType.String;
                 }
@@ -361,7 +364,7 @@ namespace REG2CI
                         }
                         if (DataType == ValueType.QWord)
                         {
-                            if (_value.StartsWith("hex(b):"))
+                            if (_value.StartsWith("hex(b):", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 string[] aHex = _value.Replace("hex(b):", "").Replace(" ", "").Split(',');
                                 List<byte> bRes = new List<byte>();
@@ -409,19 +412,30 @@ namespace REG2CI
                         if (DataType == ValueType.Binary)
                         {
                             string[] aHex = _value.Replace("hex:", "").Replace(" ", "").Split(',');
-                            _svalue = "([byte[]](";
-                            foreach(string sVal in aHex)
+
+                            if (_value.StartsWith("hex(0):", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                _svalue += "0x" + sVal + ",";
+                                aHex = _value.Replace("hex(0):", "").Replace(" ", "").Split(',');
+                                _svalue = "";
+                                return aHex;
                             }
-                            _svalue = _svalue.TrimEnd(',');
-                            _svalue += "))";
-                            return aHex;
+                            else
+                            {
+                                _svalue = "([byte[]](";
+                                foreach (string sVal in aHex)
+                                {
+                                    _svalue += "0x" + sVal + ",";
+                                }
+                                _svalue = _svalue.TrimEnd(',');
+                                _svalue += "))";
+                                return aHex;
+                            }
                         }
                         if (DataType == ValueType.ExpandString)
                         {
                             //return Encoding.UTF8.GetString(Encoding.Unicode.GetBytes(_value.Replace("hex(7):", "").Replace(" ", "")));
                             string[] aHex = _value.Replace("hex(2):", "").Replace(" ", "").Split(',');
+
                             List<byte> bRes = new List<byte>();
 
                             foreach (string sVal in aHex)
@@ -451,6 +465,9 @@ namespace REG2CI
 
                         if (DataType == ValueType.Binary)
                         {
+                            if(string.IsNullOrEmpty(_svalue))
+                                return "try{ if((Get-ItemPropertyValue -Path '{PATH}' -Name '{NAME}').length -eq 0) { $true } else { $false }} catch { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue); //PS Issue in ErrorAction for Get-ItemPropertyValue
+
                             return "if((Get-ItemPropertyValue -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ({VALUE} -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
@@ -487,6 +504,9 @@ namespace REG2CI
                         Value.ToString(); //We need to calculate the Value to have an _sValue
                         if (DataType == ValueType.Binary)
                         {
+                            if (string.IsNullOrEmpty(_svalue))
+                                return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value (New-Object Byte[] 0) -PropertyType None -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name);
+
                             return "New-ItemProperty -Path '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
                         }
                         if (DataType == ValueType.ExpandString)
