@@ -251,7 +251,7 @@ namespace REG2CI
             {
                 KeyID = keyID;
                 _name = regline.Substring(0, regline.IndexOf('='));
-                _value = regline.Substring(regline.IndexOf('=') + 1).Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+                _value = regline.Substring(regline.IndexOf('=') + 1).Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;"); //Replace values for XML-File
 
                 if (_value.StartsWith("-"))
                     Action = KeyAction.Remove;

@@ -17,14 +17,38 @@ namespace REG2PS
 
         protected void bt_Compile_Click(object sender, EventArgs e)
         {
-            REG2CI.RegFile oReg = new RegFile(tb_REG.Text, "REG2PS");
-            tb_PSSCript.Text = oReg.GetPSCheckAll();
+            try
+            {
+                REG2CI.RegFile oReg = new RegFile(tb_REG.Text, "REG2PS");
+                string sRes = oReg.GetPSCheckAll();
+                tb_PSSCript.Text = sRes.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">");
+            }
+            catch
+            {
+                ShowMessage("please upload your Registry content to https://github.com/rzander/Reg2CI/issues ", MessageType.Error);
+            }
         }
 
         protected void bt_GetRemPS_Click(object sender, EventArgs e)
         {
-            REG2CI.RegFile oReg = new RegFile(tb_REG.Text, "REG2PS");
-            tb_PSSCript.Text = oReg.GetPSRemediateAll();
+            try
+            {
+                REG2CI.RegFile oReg = new RegFile(tb_REG.Text, "REG2PS");
+                string sRes = oReg.GetPSRemediateAll();
+                tb_PSSCript.Text = sRes.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">");
+            }
+            catch
+            {
+                ShowMessage("please upload your Registry content to https://github.com/rzander/Reg2CI/issues ", MessageType.Error);
+            }
+        }
+
+        public enum MessageType { Success, Error, Info, Warning };
+
+        protected void ShowMessage(string Message, MessageType type)
+        {
+            //ClientScript.RegisterStartupScript(GetType(), "Message", "<SCRIPT LANGUAGE='javascript'>alert('" + Message + "');</script>");
+            ScriptManager.RegisterStartupScript(this, this.GetType(), System.Guid.NewGuid().ToString(), "ShowMessage('" + Message + "','" + type + "');", true);
         }
     }
 }

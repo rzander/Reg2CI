@@ -122,7 +122,7 @@ namespace REG2CI
             //generate XML Body
             InitXML(CIName);
             string SettingName = CIName;
-            String Description = "Reg2CI (c) 2017 by Roger Zander";
+            String Description = "Reg2CI (c) 2018 by Roger Zander";
 
             RegKeys = new List<RegKey>();
             RegValues = new List<RegValue>();
@@ -719,7 +719,7 @@ namespace REG2CI
 
                 xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:DisplayName", manager).Attributes["ResourceId"].Value = ResourceID;
                 xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:DisplayName", manager).Attributes["Text"].Value = CIName;
-                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:Description", manager).Attributes["Text"].Value = "Reg2CI (c) 2017 by Roger Zander";
+                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:Description", manager).Attributes["Text"].Value = "Reg2CI (c) 2018 by Roger Zander";
             }
         }
 
