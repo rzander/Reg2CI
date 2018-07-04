@@ -546,6 +546,7 @@ namespace REG2CI
         public string GetPSCheckAll()
         {
             string sResult = "# " + Description + Environment.NewLine;
+            sResult += "try {" + Environment.NewLine;
 
             foreach (RegValue oVal in RegValues)
             {
@@ -555,8 +556,10 @@ namespace REG2CI
                     sResult += "# " + oVal.Description + Environment.NewLine;
                 }
 
-                sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                sResult = sResult + "\t" + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
             }
+            sResult += "}" + Environment.NewLine; ;
+            sResult += "catch { return $false }" + Environment.NewLine; ;
             sResult += "return $true";
             return sResult;
         }

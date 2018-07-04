@@ -47,7 +47,7 @@
         </asp:ScriptManager>
         <div class="container">
             <h1>Registry to PowerShell converter</h1>
-            <p class="text-muted"><sup>Version 1.0.3.2 (23.May.2018)</sup></p>
+            <p class="text-muted"><sup>Version 1.0.3.3 (4.July.2018)</sup></p>
         </div>
         <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
         </asp:ContentPlaceHolder>
