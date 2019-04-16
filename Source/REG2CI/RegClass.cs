@@ -16,7 +16,7 @@ namespace REG2CI
         public static bool bPSScript = true;
         public static XmlDocument xDoc = new XmlDocument();
         internal static string LogicalName = "";
-        public string Description = "Reg2CI (c) 2018 by Roger Zander";
+        public string Description = "Reg2CI (c) 2019 by Roger Zander";
 
         public RegFile(string fileName, string CIName)
         {
@@ -122,7 +122,7 @@ namespace REG2CI
             //generate XML Body
             InitXML(CIName);
             string SettingName = CIName;
-            String Description = "Reg2CI (c) 2018 by Roger Zander";
+            String Description = "Reg2CI (c) 2019 by Roger Zander";
 
             RegKeys = new List<RegKey>();
             RegValues = new List<RegValue>();
@@ -725,7 +725,7 @@ namespace REG2CI
 
                 xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:DisplayName", manager).Attributes["ResourceId"].Value = ResourceID;
                 xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:DisplayName", manager).Attributes["Text"].Value = CIName;
-                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:Description", manager).Attributes["Text"].Value = "Reg2CI (c) 2018 by Roger Zander";
+                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:Description", manager).Attributes["Text"].Value = "Reg2CI (c) 2019 by Roger Zander";
             }
         }
 
@@ -808,7 +808,12 @@ namespace REG2CI
             //Load default Structure
             xSimpleSetting.InnerXml = Properties.Settings.Default.PSScript.Replace("{DISPLAYNAME}", SettingName).Replace("{DESC}", Description).Replace("{RESOURCEID}", "ID-" + Guid.NewGuid().ToString());
 
-            string sXML = xSimpleSetting.InnerXml.Replace("{PSDISC}", GetPSCheckAll(PSHive)).Replace("{PSREM}", GetPSRemediateAll(PSHive)).Replace("{X64}", x64.ToString().ToLower());
+            string sPSRem = GetPSRemediateAll(PSHive);
+            string sPSCheck = GetPSCheckAll(PSHive);
+            sPSRem = sPSRem.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("'", "&apos;").Replace("\"", "&quot;");
+            sPSCheck = sPSCheck.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("'", "&apos;").Replace("\"", "&quot;");
+            string sXML = xSimpleSetting.InnerXml.Replace("{PSDISC}", sPSCheck).Replace("{PSREM}", sPSRem).Replace("{X64}", x64.ToString().ToLower());
+            
             xSimpleSetting.InnerXml = sXML;
             if(PSHive == "HKCU:")
             {

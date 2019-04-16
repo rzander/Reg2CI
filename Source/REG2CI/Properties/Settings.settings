@@ -9,7 +9,7 @@
 	&lt;OperatingSystem AuthoringScopeId="ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892" LogicalName="OperatingSystem_e7820aa6-f780-48f8-9e39-34d15446c4d1" Version="2"&gt;
 		&lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
 			&lt;DisplayName Text="Test CI" ResourceId="ID-457b14c0-5df6-4a6b-a693-2f807d31db72"/&gt;
-			&lt;Description Text="Reg2CI (c) 2018 by Roger Zander"/&gt;
+			&lt;Description Text="Reg2CI (c) 2019 by Roger Zander"/&gt;
 		&lt;/Annotation&gt;
 		&lt;Parts&gt;
 			&lt;SuppressionReferences/&gt;
@@ -74,7 +74,7 @@
   &lt;Application AuthoringScopeId="ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892" LogicalName="Application_8ffce5a5-ebed-47ee-88c1-80fdd4504a04" Version="1" Is64Bit="false"&gt;
     &lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
       &lt;DisplayName Text="TEST" ResourceId="" /&gt;
-      &lt;Description Text="Reg2CI (c) 2018 by Roger Zander" /&gt;
+      &lt;Description Text="Reg2CI (c) 2019 by Roger Zander" /&gt;
     &lt;/Annotation&gt;
     &lt;Parts&gt;
       &lt;SuppressionReferences /&gt;
@@ -110,7 +110,7 @@ New-ItemProperty -Path '{KEY}' -Name {VALUENAME} -Value {TARGETVALUE} -PropertyT
     <Setting Name="RulePSBool" Type="System.String" Scope="Application">
       <Value Profile="(Default)">&lt;Annotation xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
 	&lt;DisplayName Text="{DISPLAYNAME}" ResourceId="{RESOURCEID}"/&gt;
-	&lt;Description Text="Reg2CI (c) 2018 by Roger Zander"/&gt;
+	&lt;Description Text="Reg2CI (c) 2019 by Roger Zander"/&gt;
 &lt;/Annotation&gt;
 &lt;Expression xmlns="http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules"&gt;
 	&lt;Operator&gt;Equals&lt;/Operator&gt;
