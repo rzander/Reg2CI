@@ -16,7 +16,7 @@ namespace REG2CI
         public static bool bPSScript = true;
         public static XmlDocument xDoc = new XmlDocument();
         internal static string LogicalName = "";
-        public string Description = "Reg2CI (c) 2019 by Roger Zander";
+        public string Description = "Reg2CI (c) 2020 by Roger Zander";
 
         public RegFile(string fileName, string CIName)
         {
@@ -339,9 +339,10 @@ namespace REG2CI
                     {
                         if (DataType == ValueType.String)
                         {
-                            string sResult = _value.Substring(_value.IndexOf('"') + 1);
-                            if (!string.IsNullOrEmpty(sResult))
-                                sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
+                            //string sResult = _value.Substring(_value.IndexOf('"') + 1);
+                            string sResult = _value.TrimStart('"').TrimEnd('"');
+                            //if (!string.IsNullOrEmpty(sResult))
+                            //    sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
                             if (sResult.Contains(@":\\"))
                                 sResult = sResult.Replace("\\\\", "\\");
                             _svalue = "\"" + sResult + "\"";
@@ -476,7 +477,7 @@ namespace REG2CI
                             return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
-                        string sResult = _svalue.Replace(@"\""", @"`""");
+                        string sResult = _svalue; //.Replace(@"\""", @"`"""); Why?
                         //return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
                         return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
                     }
@@ -527,7 +528,7 @@ namespace REG2CI
                             return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
                         }
 
-                        string sResult = _svalue.Replace(@"\""", @"`""");
+                        string sResult = _svalue; //.Replace(@"\""", @"`"""); Why?
                         return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult).Replace("{TARGETTYPE}", DataType.ToString());
                     }
                     else
@@ -548,16 +549,25 @@ namespace REG2CI
             string sResult = "# " + Description + Environment.NewLine;
             sResult += "try {" + Environment.NewLine;
 
-            foreach (RegValue oVal in RegValues)
+            foreach (RegKey oKey in RegKeys)
             {
-                if (!string.IsNullOrEmpty(oVal.Description))
-                {
-                    sResult += Environment.NewLine;
-                    sResult += "# " + oVal.Description + Environment.NewLine;
-                }
-
-                sResult = sResult + "\t" + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                sResult = sResult + "\tif(-NOT (" + oKey.PSCheck + ")){ return $false };" + Environment.NewLine;
             }
+
+            if (RegValues.Count > 0)
+            {
+                foreach (RegValue oVal in RegValues)
+                {
+                    if (!string.IsNullOrEmpty(oVal.Description))
+                    {
+                        sResult += Environment.NewLine;
+                        sResult += "# " + oVal.Description + Environment.NewLine;
+                    }
+
+                    sResult = sResult + "\t" + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                }
+            }
+
             sResult += "}" + Environment.NewLine; ;
             sResult += "catch { return $false }" + Environment.NewLine; ;
             sResult += "return $true";
