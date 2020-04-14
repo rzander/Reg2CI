@@ -321,3 +321,4 @@ ASALocalRun/
 # MSBuild Binary and Structured Log
 *.binlog
 
+Source/REG2PS/test.reg

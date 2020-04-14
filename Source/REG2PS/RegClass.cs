@@ -345,7 +345,7 @@ namespace REG2CI
                             //    sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
                             if (sResult.Contains(@":\\"))
                                 sResult = sResult.Replace("\\\\", "\\");
-                            _svalue = "\"" + sResult + "\"";
+                            _svalue = sResult;
                             return sResult;
                         }
                         if (DataType == ValueType.DWord)
@@ -445,8 +445,9 @@ namespace REG2CI
                             }
 
                             string sResult = Encoding.Unicode.GetString(bRes.ToArray());
-                            _svalue = "\"" + string.Join(",", sResult.TrimEnd('\0').Split('\0')) + "\"";
-                            return sResult.TrimEnd('\0');
+                            sResult = sResult.TrimEnd('\0');
+                            _svalue = string.Join(",", sResult.TrimEnd('\0').Split('\0'));
+                            return _svalue;
                         }
                     }
                     return "";
@@ -469,17 +470,25 @@ namespace REG2CI
                             if(string.IsNullOrEmpty(_svalue))
                                 return "try{ if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}').length -eq 0) { $true } else { $false }} catch { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue); //PS Issue in ErrorAction for Get-ItemPropertyValue
 
-                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ({VALUE} -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ('{VALUE}' -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
                         if (DataType == ValueType.MultiString)
                         {
-                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq '{VALUE}') { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
-                        string sResult = _svalue; //.Replace(@"\""", @"`"""); Why?
-                        //return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
-                        return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
+                        if (DataType == ValueType.ExpandString)
+                        {
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq ({VALUE})) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", $"[System.Environment]::ExpandEnvironmentVariables('{_svalue}')");
+                        }
+
+                        if (DataType == ValueType.String)
+                        {
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq '{VALUE}') { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                        }
+
+                        return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                     }
                     else
                     {
@@ -512,10 +521,14 @@ namespace REG2CI
                         }
                         if (DataType == ValueType.ExpandString)
                         {
-                            string sPSVal = "\"" + Value + "\"";
-
-                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
+                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value '{VALUE}' -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", Value.ToString()).Replace("{TARGETTYPE}", DataType.ToString());
                         }
+
+                        if (DataType == ValueType.String)
+                        {
+                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value '{VALUE}' -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", Value.ToString()).Replace("{TARGETTYPE}", DataType.ToString());
+                        }
+
                         if (DataType == ValueType.MultiString)
                         {
                             string sPSVal = "@(";

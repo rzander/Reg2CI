@@ -16,7 +16,7 @@ namespace REG2CI
         public static bool bPSScript = true;
         public static XmlDocument xDoc = new XmlDocument();
         internal static string LogicalName = "";
-        public string Description = "Reg2CI (c) 2019 by Roger Zander";
+        public string Description = "Reg2CI (c) 2020 by Roger Zander";
 
         public RegFile(string fileName, string CIName)
         {
@@ -35,8 +35,9 @@ namespace REG2CI
             _filename = fileName;
 
             //generate XML Body
-            InitXML(CIName);
+            //InitXML(CIName);
             string SettingName = CIName;
+
             string sAllLines = fileName;
 
             if (File.Exists(fileName))
@@ -103,53 +104,15 @@ namespace REG2CI
                 iPos++;
             }
 
-            if(bPSScript)
-            {
-                if(bHKLM)
-                    CreatePSXMLAll(SettingName, Description, "HKLM:");
-                if (bHKCU)
-                    CreatePSXMLAll(SettingName, Description, "HKCU:");
-            }
-}
-        public RegFile(string fileName, bool X64, string CIName, bool MachinePolicy)
-        {
-            x64 = X64;
-            _filename = fileName;
-
-            POL oPol= new POL(fileName, MachinePolicy);
-
-
-            //generate XML Body
-            InitXML(CIName);
-            string SettingName = CIName;
-            String Description = "Reg2CI (c) 2019 by Roger Zander";
-
-            RegKeys = new List<RegKey>();
-            RegValues = new List<RegValue>();
-
-            int iPos = 0;
-            bool bHKLM = MachinePolicy;
-            bool bHKCU = !MachinePolicy;
-
-            foreach (POLPolicy oPolicy in oPol.Policies)
-            {
-                RegKey rKey = new RegKey(oPolicy.Key, iPos);
-                RegKeys.Add(rKey);
-
-                RegValue oValue = new RegValue(oPolicy.Value, oPolicy.Data, oPolicy.Type, iPos);
-                RegValues.Add(oValue);
-
-                iPos++;
-            }
-
-            if (bPSScript)
+            /*if (bPSScript)
             {
                 if (bHKLM)
                     CreatePSXMLAll(SettingName, Description, "HKLM:");
                 if (bHKCU)
                     CreatePSXMLAll(SettingName, Description, "HKCU:");
-            }
+            }*/
         }
+
         public string fileName
         {
             get { return _filename; }
@@ -288,7 +251,7 @@ namespace REG2CI
             {
                 KeyID = keyID;
                 _name = regline.Substring(0, regline.IndexOf('='));
-                _value = regline.Substring(regline.IndexOf('=') + 1).Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+                _value = regline.Substring(regline.IndexOf('=') + 1).Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;"); //Replace values for XML-File
 
                 if (_value.StartsWith("-"))
                     Action = KeyAction.Remove;
@@ -376,12 +339,13 @@ namespace REG2CI
                     {
                         if (DataType == ValueType.String)
                         {
-                            string sResult = _value.Substring(_value.IndexOf('"') + 1);
-                            if (!string.IsNullOrEmpty(sResult))
-                                sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
+                            //string sResult = _value.Substring(_value.IndexOf('"') + 1);
+                            string sResult = _value.TrimStart('"').TrimEnd('"');
+                            //if (!string.IsNullOrEmpty(sResult))
+                            //    sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
                             if (sResult.Contains(@":\\"))
                                 sResult = sResult.Replace("\\\\", "\\");
-                            _svalue = "\"" + sResult + "\"";
+                            _svalue = sResult;
                             return sResult;
                         }
                         if (DataType == ValueType.DWord)
@@ -392,7 +356,7 @@ namespace REG2CI
                                 Int32 iResult = Convert.ToInt32(_svalue, 16); //Int32.Parse(_svalue);
                                 _i32Value = iResult;
                                 _i64Value = iResult;
-                                _svalue = "0x" + iResult.ToString();
+                                _svalue = iResult.ToString();
                                 return iResult;
                             }
                             catch { }
@@ -401,16 +365,34 @@ namespace REG2CI
                         }
                         if (DataType == ValueType.QWord)
                         {
-                            _svalue = "0x" + _value.Substring(_value.IndexOf(':') + 1);
-                            try
+                            if (_value.StartsWith("hex(b):", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                Int64 iResult = Convert.ToInt64(_svalue, 16);  //Int64.Parse(_svalue);
+                                string[] aHex = _value.Replace("hex(b):", "").Replace(" ", "").Split(',');
+                                List<byte> bRes = new List<byte>();
+                                _svalue = "0x";
+                                foreach (string sVal in aHex.Reverse())
+                                {
+                                    _svalue += sVal;
+                                }
+
+                                Int64 iResult = Convert.ToInt64(_svalue, 16);
                                 _i64Value = iResult;
-                                _svalue = "0x" + iResult.ToString();
+                                _svalue = iResult.ToString();
+
                                 return iResult;
                             }
-                            catch { }
-
+                            else
+                            {
+                                _svalue = "0x" + _value.Substring(_value.IndexOf(':') + 1);
+                                try
+                                {
+                                    Int64 iResult = Convert.ToInt64(_svalue, 16);  //Int64.Parse(_svalue);
+                                    _i64Value = iResult;
+                                    _svalue = "0x" + iResult.ToString();
+                                    return iResult;
+                                }
+                                catch { }
+                            }
                             return _svalue;
                         }
                         if (DataType == ValueType.MultiString)
@@ -431,19 +413,30 @@ namespace REG2CI
                         if (DataType == ValueType.Binary)
                         {
                             string[] aHex = _value.Replace("hex:", "").Replace(" ", "").Split(',');
-                            _svalue = "([byte[]](";
-                            foreach (string sVal in aHex)
+
+                            if (_value.StartsWith("hex(0):", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                _svalue += "0x" + sVal + ",";
+                                aHex = _value.Replace("hex(0):", "").Replace(" ", "").Split(',');
+                                _svalue = "";
+                                return aHex;
                             }
-                            _svalue = _svalue.TrimEnd(',');
-                            _svalue += "))";
-                            return aHex;
+                            else
+                            {
+                                _svalue = "([byte[]](";
+                                foreach (string sVal in aHex)
+                                {
+                                    _svalue += "0x" + sVal + ",";
+                                }
+                                _svalue = _svalue.TrimEnd(',');
+                                _svalue += "))";
+                                return aHex;
+                            }
                         }
                         if (DataType == ValueType.ExpandString)
                         {
                             //return Encoding.UTF8.GetString(Encoding.Unicode.GetBytes(_value.Replace("hex(7):", "").Replace(" ", "")));
                             string[] aHex = _value.Replace("hex(2):", "").Replace(" ", "").Split(',');
+
                             List<byte> bRes = new List<byte>();
 
                             foreach (string sVal in aHex)
@@ -452,8 +445,9 @@ namespace REG2CI
                             }
 
                             string sResult = Encoding.Unicode.GetString(bRes.ToArray());
-                            _svalue = "\"" + string.Join(",", sResult.TrimEnd('\0').Split('\0')) + "\"";
-                            return sResult.TrimEnd('\0');
+                            sResult = sResult.TrimEnd('\0');
+                            _svalue = string.Join(",", sResult.TrimEnd('\0').Split('\0'));
+                            return _svalue;
                         }
                     }
                     return "";
@@ -476,17 +470,25 @@ namespace REG2CI
                             if (string.IsNullOrEmpty(_svalue))
                                 return "try{ if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}').length -eq 0) { $true } else { $false }} catch { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue); //PS Issue in ErrorAction for Get-ItemPropertyValue
 
-                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ({VALUE} -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ('{VALUE}' -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
                         if (DataType == ValueType.MultiString)
                         {
-                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq '{VALUE}') { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
-                        string sResult = _svalue.Replace(@"\""", @"`""");
-                        //return "if((Get-ItemProperty -Path '{PATH}' -Name '{NAME}' -ea SilentlyContinue).'{NAME}' -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
-                        return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult);
+                        if (DataType == ValueType.ExpandString)
+                        {
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq ({VALUE})) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", $"[System.Environment]::ExpandEnvironmentVariables('{_svalue}')");
+                        }
+
+                        if (DataType == ValueType.String)
+                        {
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq '{VALUE}') { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                        }
+
+                        return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -eq {VALUE}) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                     }
                     else
                     {
@@ -519,10 +521,14 @@ namespace REG2CI
                         }
                         if (DataType == ValueType.ExpandString)
                         {
-                            string sPSVal = "\"" + Value + "\"";
-
-                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
+                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value '{VALUE}' -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", Value.ToString()).Replace("{TARGETTYPE}", DataType.ToString());
                         }
+
+                        if (DataType == ValueType.String)
+                        {
+                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value '{VALUE}' -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", Value.ToString()).Replace("{TARGETTYPE}", DataType.ToString());
+                        }
+
                         if (DataType == ValueType.MultiString)
                         {
                             string sPSVal = "@(";
@@ -535,7 +541,7 @@ namespace REG2CI
                             return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
                         }
 
-                        string sResult = _svalue.Replace(@"\""", @"`""");
+                        string sResult = _svalue; //.Replace(@"\""", @"`"""); Why?
                         return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult).Replace("{TARGETTYPE}", DataType.ToString());
                     }
                     else
@@ -556,30 +562,14 @@ namespace REG2CI
             string sResult = "# " + Description + Environment.NewLine;
             sResult += "try {" + Environment.NewLine;
 
-            foreach (RegValue oVal in RegValues)
+            foreach (RegKey oKey in RegKeys)
             {
-                if (!string.IsNullOrEmpty(oVal.Description))
-                {
-                    sResult += Environment.NewLine;
-                    sResult += "# " + oVal.Description + Environment.NewLine;
-                }
-
-                sResult = sResult + "\t" + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
+                sResult = sResult + "\tif(-NOT (" + oKey.PSCheck + ")){ return $false };" + Environment.NewLine;
             }
-            sResult += "}" + Environment.NewLine; ;
-            sResult += "catch { return $false }" + Environment.NewLine; ;
-            sResult += "return $true";
-            return sResult;
-        }
 
-        public string GetPSCheckAll(string PSHive)
-        {
-            string sResult = "# " + Description + Environment.NewLine;
-            sResult += "try {" + Environment.NewLine;
-
-            if (PSHive == "HKLM:")
+            if (RegValues.Count > 0)
             {
-                foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive != "HKCU:"))
+                foreach (RegValue oVal in RegValues)
                 {
                     if (!string.IsNullOrEmpty(oVal.Description))
                     {
@@ -589,24 +579,23 @@ namespace REG2CI
 
                     sResult = sResult + "\t" + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
                 }
-                sResult += "}" + Environment.NewLine; ;
-                sResult += "catch { return $false }" + Environment.NewLine; ;
-                sResult += "return $true";
             }
-            else
-            {
-                foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive == "HKCU:"))
-                {
-                    if (!string.IsNullOrEmpty(oVal.Description))
-                    {
-                        sResult += Environment.NewLine;
-                        sResult += "# " + oVal.Description + Environment.NewLine;
-                    }
 
-                    sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
-                }
-                sResult += "return $true";
+            sResult += "}" + Environment.NewLine; ;
+            sResult += "catch { return $false }" + Environment.NewLine; ;
+            sResult += "return $true";
+            return sResult;
+        }
+
+        public string GetPSCheckAll(string PSHive)
+        {
+            string sResult = "# " + Description + Environment.NewLine;
+
+            foreach (RegValue oVal in RegValues.Where(t => t.Key.PSHive == PSHive))
+            {
+                sResult = sResult + oVal.PSCheck.Replace("$true", "").Replace("$false", "return $false") + ";" + Environment.NewLine;
             }
+            sResult += "return $true";
             return sResult;
         }
 
@@ -696,157 +685,6 @@ namespace REG2CI
             return sResult;
         }
 
-        internal void InitXML(string CIName)
-        {
-            if (bApplication)
-            {
-                xDoc.LoadXml(Properties.Settings.Default.XMLBodyApp);
-
-                XmlNamespaceManager manager = new XmlNamespaceManager(xDoc.NameTable);
-                string sDC = "http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/07/10/DesiredConfiguration";
-                //string sRules = "http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules";
-                manager.AddNamespace("dc", sDC);
-                manager.AddNamespace("rules", "http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules");
-
-                string ResourceID = "ID-" + Guid.NewGuid().ToString();
-                string AuthoringScopeId = "ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892"; // + Guid.NewGuid().ToString();
-                
-                XmlNode RCS = null;
-                XmlNode Rules = null;
-                //XmlNode xSimpleSetting = null;
-
-                LogicalName = "Application_" + Guid.NewGuid().ToString();
-                RCS = xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/dc:Settings/dc:RootComplexSetting", manager);
-
-                Rules = xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/dc:Rules", manager);
-                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application", manager).Attributes["AuthoringScopeId"].Value = AuthoringScopeId;
-                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application", manager).Attributes["LogicalName"].Value = LogicalName;
-                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application", manager).Attributes["Version"].Value = "1";
-
-                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:DisplayName", manager).Attributes["ResourceId"].Value = ResourceID;
-                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:DisplayName", manager).Attributes["Text"].Value = CIName;
-                xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/rules:Annotation/rules:Description", manager).Attributes["Text"].Value = "Reg2CI (c) 2019 by Roger Zander";
-            }
-        }
-
-        internal void CreatePSXMLAll(string SettingName, string Description)
-        {
-            XmlNamespaceManager manager = new XmlNamespaceManager(xDoc.NameTable);
-            string sDC = "http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/07/10/DesiredConfiguration";
-            string sRules = "http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules";
-            string AuthoringScopeId = "ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892";
-            manager.AddNamespace("dc", sDC);
-            manager.AddNamespace("rules", sRules);
-
-            string PSLogicalName = "ScriptSetting_" + Guid.NewGuid().ToString();
-
-            XmlNode xSimpleSetting = xDoc.CreateNode(XmlNodeType.Element, "SimpleSetting", sDC);
-
-            var xLogicalname = xDoc.CreateAttribute("LogicalName");
-            xLogicalname.Value = PSLogicalName;
-            xSimpleSetting.Attributes.Append(xLogicalname);
-
-            //Add DataType Attribute
-            var xDataType = xDoc.CreateAttribute("DataType");
-            xDataType.Value = "Boolean"; //PS Script return Boolean
-            xSimpleSetting.Attributes.Append(xDataType);
-
-            //Load default Structure
-            xSimpleSetting.InnerXml = Properties.Settings.Default.PSScript.Replace("{DISPLAYNAME}", SettingName).Replace("{DESC}", Description).Replace("{RESOURCEID}", "ID-" + Guid.NewGuid().ToString());
-            xSimpleSetting.InnerXml = xSimpleSetting.InnerXml.Replace("{PSDISC}", GetPSCheckAll()).Replace("{PSREM}", GetPSRemediateAll()).Replace("{X64}", x64.ToString().ToLower());
-
-            XmlNode RCS = xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/dc:Settings/dc:RootComplexSetting", manager);
-            RCS.AppendChild(xSimpleSetting);
-
-            //Add Rule
-            XmlNode xRule = xDoc.CreateNode(XmlNodeType.Element, "Rule", sRules);
-
-            var xRuleid = xDoc.CreateAttribute("id");
-            xRuleid.Value = "Rule_" + Guid.NewGuid().ToString();
-            xRule.Attributes.Append(xRuleid);
-
-            var xSeverity = xDoc.CreateAttribute("Severity");
-            xSeverity.Value = "Warning";
-            xRule.Attributes.Append(xSeverity);
-
-
-            var xNonComp = xDoc.CreateAttribute("NonCompliantWhenSettingIsNotFound");
-            xNonComp.Value = "true";
-            xRule.Attributes.Append(xNonComp);
-
-
-            xRule.InnerXml = Properties.Settings.Default.RulePSBool.Replace("{DISPLAYNAME}", SettingName).Replace("{RESOURCEID}", "ID-" + Guid.NewGuid().ToString());
-            xRule.InnerXml = xRule.InnerXml.Replace("{AUTHORINGSCOPEID}", AuthoringScopeId).Replace("{LOGICALNAME}", LogicalName).Replace("{DATATYPE}", "Boolean");
-            xRule.InnerXml = xRule.InnerXml.Replace("{SETTINGLOGICALNAME}", PSLogicalName);
-
-            XmlNode Rules = xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/dc:Rules", manager);
-            Rules.AppendChild(xRule);
-        }
-
-        internal void CreatePSXMLAll(string SettingName, string Description, string PSHive)
-        {
-            XmlNamespaceManager manager = new XmlNamespaceManager(xDoc.NameTable);
-            string sDC = "http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/07/10/DesiredConfiguration";
-            string sRules = "http://schemas.microsoft.com/SystemsCenterConfigurationManager/2009/06/14/Rules";
-            string AuthoringScopeId = "ScopeId_709B4C9D-07C0-476D-9CF4-2E760FA01892";
-            manager.AddNamespace("dc", sDC);
-            manager.AddNamespace("rules", sRules);
-
-            string PSLogicalName = "ScriptSetting_" + Guid.NewGuid().ToString();
-
-            XmlNode xSimpleSetting = xDoc.CreateNode(XmlNodeType.Element, "SimpleSetting", sDC);
-
-            var xLogicalname = xDoc.CreateAttribute("LogicalName");
-            xLogicalname.Value = PSLogicalName;
-            xSimpleSetting.Attributes.Append(xLogicalname);
-
-            //Add DataType Attribute
-            var xDataType = xDoc.CreateAttribute("DataType");
-            xDataType.Value = "Boolean"; //PS Script return Boolean
-            xSimpleSetting.Attributes.Append(xDataType);
-
-            //Load default Structure
-            xSimpleSetting.InnerXml = Properties.Settings.Default.PSScript.Replace("{DISPLAYNAME}", SettingName).Replace("{DESC}", Description).Replace("{RESOURCEID}", "ID-" + Guid.NewGuid().ToString());
-
-            string sPSRem = GetPSRemediateAll(PSHive);
-            string sPSCheck = GetPSCheckAll(PSHive);
-            sPSRem = sPSRem.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("'", "&apos;").Replace("\"", "&quot;");
-            sPSCheck = sPSCheck.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("'", "&apos;").Replace("\"", "&quot;");
-            string sXML = xSimpleSetting.InnerXml.Replace("{PSDISC}", sPSCheck).Replace("{PSREM}", sPSRem).Replace("{X64}", x64.ToString().ToLower());
-            
-            xSimpleSetting.InnerXml = sXML;
-            if(PSHive == "HKCU:")
-            {
-                xSimpleSetting.InnerXml = xSimpleSetting.InnerXml.Replace("ScriptDiscoverySource Is64Bit=\"" + x64.ToString().ToLower() + "\"", "ScriptDiscoverySource Is64Bit=\"" + x64.ToString().ToLower() + "\" IsPerUser=\"true\"");
-            }
-
-            XmlNode RCS = xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/dc:Settings/dc:RootComplexSetting", manager);
-            RCS.AppendChild(xSimpleSetting);
-
-            //Add Rule
-            XmlNode xRule = xDoc.CreateNode(XmlNodeType.Element, "Rule", sRules);
-
-            var xRuleid = xDoc.CreateAttribute("id");
-            xRuleid.Value = "Rule_" + Guid.NewGuid().ToString();
-            xRule.Attributes.Append(xRuleid);
-
-            var xSeverity = xDoc.CreateAttribute("Severity");
-            xSeverity.Value = "Warning";
-            xRule.Attributes.Append(xSeverity);
-
-
-            var xNonComp = xDoc.CreateAttribute("NonCompliantWhenSettingIsNotFound");
-            xNonComp.Value = "true";
-            xRule.Attributes.Append(xNonComp);
-
-
-            xRule.InnerXml = Properties.Settings.Default.RulePSBool.Replace("{DISPLAYNAME}", SettingName).Replace("{RESOURCEID}", "ID-" + Guid.NewGuid().ToString());
-            xRule.InnerXml = xRule.InnerXml.Replace("{AUTHORINGSCOPEID}", AuthoringScopeId).Replace("{LOGICALNAME}", LogicalName).Replace("{DATATYPE}", "Boolean");
-            xRule.InnerXml = xRule.InnerXml.Replace("{SETTINGLOGICALNAME}", PSLogicalName);
-
-            XmlNode Rules = xDoc.SelectSingleNode("//dc:DesiredConfigurationDigest/dc:Application/dc:Rules", manager);
-            Rules.AppendChild(xRule);
-        }
     }
 
     public enum KeyAction
