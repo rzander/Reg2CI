@@ -343,7 +343,9 @@ namespace REG2CI
                             string sResult = _value.TrimStart('"').TrimEnd('"');
                             //if (!string.IsNullOrEmpty(sResult))
                             //    sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
-                            if (sResult.Contains(@":\\"))
+                            //if (sResult.Contains(@":\\"))
+                            //    sResult = sResult.Replace("\\\\", "\\");
+                            if (sResult.Contains("\\\\"))
                                 sResult = sResult.Replace("\\\\", "\\");
                             _svalue = sResult;
                             return sResult;
@@ -470,7 +472,7 @@ namespace REG2CI
                             if(string.IsNullOrEmpty(_svalue))
                                 return "try{ if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}').length -eq 0) { $true } else { $false }} catch { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue); //PS Issue in ErrorAction for Get-ItemPropertyValue
 
-                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ('{VALUE}' -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
+                            return "if((Get-ItemPropertyValue -LiteralPath '{PATH}' -Name '{NAME}' -ea SilentlyContinue) -join ',' -eq ({VALUE} -join ',')) { $true } else { $false }".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue);
                         }
 
                         if (DataType == ValueType.MultiString)
