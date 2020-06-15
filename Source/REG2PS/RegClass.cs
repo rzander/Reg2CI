@@ -201,7 +201,7 @@ namespace REG2CI
                                 + ""
                                 + NewPath.Substring(n + "\\Wow6432Node".Length);
                         }
-                        return NewPath;
+                        return NewPath.TrimEnd();
                     }
                 }
             }
