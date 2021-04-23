@@ -16,7 +16,7 @@ namespace REG2CI
         public static bool bPSScript = true;
         public static XmlDocument xDoc = new XmlDocument();
         internal static string LogicalName = "";
-        public string Description = "Reg2CI (c) 2020 by Roger Zander";
+        public string Description = "Reg2CI (c) 2021 by Roger Zander";
 
         public RegFile(string fileName, string CIName)
         {

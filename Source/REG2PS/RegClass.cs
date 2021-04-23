@@ -16,7 +16,7 @@ namespace REG2CI
         public static bool bPSScript = true;
         public static XmlDocument xDoc = new XmlDocument();
         internal static string LogicalName = "";
-        public string Description = "Reg2CI (c) 2020 by Roger Zander";
+        public string Description = "Reg2CI (c) 2021 by Roger Zander";
 
         public RegFile(string fileName, string CIName)
         {
@@ -251,7 +251,7 @@ namespace REG2CI
             {
                 KeyID = keyID;
                 _name = regline.Substring(0, regline.IndexOf('='));
-                _value = regline.Substring(regline.IndexOf('=') + 1).Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;"); //Replace values for XML-File
+                _value = regline.Substring(regline.IndexOf('=') + 1).Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Trim(); //Replace values for XML-File
 
                 if (_value.StartsWith("-"))
                     Action = KeyAction.Remove;
@@ -263,7 +263,7 @@ namespace REG2CI
             {
                 KeyID = keyID;
                 _name = Name.Replace("**Del.", "").Replace("**del.", "");
-                _value = Value;
+                _value = Value.Trim();
 
                 if (Name.ToLower().StartsWith("**del."))
                     Action = KeyAction.Remove;
@@ -517,18 +517,18 @@ namespace REG2CI
                         if (DataType == ValueType.Binary)
                         {
                             if (string.IsNullOrEmpty(_svalue))
-                                return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value (New-Object Byte[] 0) -PropertyType None -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name);
+                                return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value (New-Object Byte[] 0) -PropertyType None -Force -ea SilentlyContinue".Replace("{PATH}", PSHive.Trim() + "\\" + Path.Trim()).Replace("{NAME}", Name.Trim());
 
-                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
+                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive.Trim() + "\\" + Path.Trim()).Replace("{NAME}", Name.Trim()).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
                         }
                         if (DataType == ValueType.ExpandString)
                         {
-                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value '{VALUE}' -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", Value.ToString()).Replace("{TARGETTYPE}", DataType.ToString());
+                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value '{VALUE}' -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive.Trim() + "\\" + Path.Trim()).Replace("{NAME}", Name.Trim()).Replace("{VALUE}", Value.ToString().Trim()).Replace("{TARGETTYPE}", DataType.ToString());
                         }
 
                         if (DataType == ValueType.String)
                         {
-                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value '{VALUE}' -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", Value.ToString()).Replace("{TARGETTYPE}", DataType.ToString());
+                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value '{VALUE}' -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive.Trim() + "\\" + Path.Trim()).Replace("{NAME}", Name.Trim()).Replace("{VALUE}", Value.ToString().Trim()).Replace("{TARGETTYPE}", DataType.ToString());
                         }
 
                         if (DataType == ValueType.MultiString)
@@ -540,20 +540,20 @@ namespace REG2CI
                             }
                             sPSVal = sPSVal.TrimEnd(',');
                             sPSVal += ")";
-                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
+                            return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive.Trim() + "\\" + Path.Trim()).Replace("{NAME}", Name.Trim()).Replace("{VALUE}", sPSVal).Replace("{TARGETTYPE}", DataType.ToString());
                         }
 
                         string sResult = _svalue; //.Replace(@"\""", @"`"""); Why?
-                        return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", sResult).Replace("{TARGETTYPE}", DataType.ToString());
+                        return "New-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Value {VALUE} -PropertyType {TARGETTYPE} -Force -ea SilentlyContinue".Replace("{PATH}", PSHive.Trim() + "\\" + Path.Trim()).Replace("{NAME}", Name.Trim()).Replace("{VALUE}", sResult.Trim()).Replace("{TARGETTYPE}", DataType.ToString());
                     }
                     else
                     {
                         Value.ToString(); //We need to calculate the Value to have an _sValue
                         if (Value.GetType() == typeof(string[]))
                         {
-                            return "Remove-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
+                            return "Remove-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Force -ea SilentlyContinue".Replace("{PATH}", PSHive.Trim() + "\\" + Path.Trim()).Replace("{NAME}", Name.Trim()).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
                         }
-                        return "Remove-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Force -ea SilentlyContinue".Replace("{PATH}", PSHive + "\\" + Path).Replace("{NAME}", Name).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
+                        return "Remove-ItemProperty -LiteralPath '{PATH}' -Name '{NAME}' -Force -ea SilentlyContinue".Replace("{PATH}", PSHive.Trim() + "\\" + Path.Trim()).Replace("{NAME}", Name.Trim()).Replace("{VALUE}", _svalue).Replace("{TARGETTYPE}", DataType.ToString());
                     }
                 }
             }
