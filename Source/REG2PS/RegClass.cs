@@ -16,7 +16,7 @@ namespace REG2CI
         public static bool bPSScript = true;
         public static XmlDocument xDoc = new XmlDocument();
         internal static string LogicalName = "";
-        public string Description = "Reg2CI (c) 2021 by Roger Zander";
+        public string Description = "Reg2CI (c) 2022 by Roger Zander";
 
         public RegFile(string fileName, string CIName)
         {
@@ -338,15 +338,21 @@ namespace REG2CI
                     if (Action == KeyAction.Add)
                     {
                         if (DataType == ValueType.String)
-                        {
+                         {
                             //string sResult = _value.Substring(_value.IndexOf('"') + 1);
-                            string sResult = _value.TrimStart('"').TrimEnd('"');
+                            //string sResult = _value.TrimStart('"').TrimEnd('"').TrimEnd('"');
+                            string sResult = _value.TrimStart('"');
+                            if (sResult.EndsWith("\""))
+                                sResult = sResult.Remove(sResult.Length - 1);
+
                             //if (!string.IsNullOrEmpty(sResult))
                             //    sResult = sResult.Substring(0, _value.LastIndexOf('"') - 1);
                             //if (sResult.Contains(@":\\"))
                             //    sResult = sResult.Replace("\\\\", "\\");
                             if (sResult.Contains("\\\\"))
                                 sResult = sResult.Replace("\\\\", "\\");
+
+                            sResult = sResult.Replace(@"\""", "\"");
                             _svalue = sResult;
                             return sResult;
                         }
