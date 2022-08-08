@@ -47,14 +47,14 @@
         </asp:ScriptManager>
         <div class="container">
             <h1>Registry to PowerShell converter</h1>
-            <p class="text-muted"><sup>Version 1.0.3.10 (23.Apr.2021)</sup></p>
+            <p class="text-muted"><sup>Version 1.0.3.11 (08.Aug.2022)</sup></p>
         </div>
         <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
         </asp:ContentPlaceHolder>
     </form>
     <footer class="rfooter">
         <div class="container">
-            <p class="text-muted"><a href="https://github.com/rzander/REG2CI/" title="REG2PS on GitHub">REG2PS on GitHub...</a> Copyright © 2021 by Roger Zander</p>
+            <p class="text-muted"><a href="https://github.com/rzander/REG2CI/" title="REG2PS on GitHub">REG2PS on GitHub...</a> Copyright © 2022 by Roger Zander</p>
         </div>
     </footer>
 </body>
