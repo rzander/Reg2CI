@@ -30,11 +30,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title>Registry to PowerShell converter</title>
-    <link rel="shortcut icon" type="image/ico" href="/Images/powershell.ico">
     <meta name="description" content="Convert PowerShell scripts into Windows executables." />
     <meta name="keywords" content="Powershell, PoSh, registry, convert, reg, ps1, script" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="text/javascript" src="Scripts/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="Scripts/jquery-3.7.0.min.js"></script>
     <script type="text/javascript" src="Scripts/bootstrap.min.js"></script>
     <link rel="stylesheet" href="Content/bootstrap.css" />
 
@@ -47,14 +46,14 @@
         </asp:ScriptManager>
         <div class="container">
             <h1>Registry to PowerShell converter</h1>
-            <p class="text-muted"><sup>Version 1.0.3.11 (08.Aug.2022)</sup></p>
+            <p class="text-muted"><sup>Version 1.0.3.12 (03.Jun.2023)</sup></p>
         </div>
         <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
         </asp:ContentPlaceHolder>
     </form>
     <footer class="rfooter">
         <div class="container">
-            <p class="text-muted"><a href="https://github.com/rzander/REG2CI/" title="REG2PS on GitHub">REG2PS on GitHub...</a> Copyright © 2022 by Roger Zander</p>
+            <p class="text-muted"><a href="https://github.com/rzander/REG2CI/" title="REG2PS on GitHub">REG2PS on GitHub...</a> Copyright © 2023 by Roger Zander</p>
         </div>
     </footer>
 </body>
